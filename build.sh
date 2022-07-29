@@ -12,6 +12,8 @@ build() {
 
 ####################################################################
 
+go mod tidy
+
 build android arm64
 
 build darwin amd64

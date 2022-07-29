@@ -5,6 +5,8 @@ SET CGO_ENABLED=0
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+go mod tidy
+
 CALL :build android arm64
 
 CALL :build darwin amd64
