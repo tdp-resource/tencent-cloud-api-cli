@@ -24,7 +24,7 @@ func Exec() {
 		secretKey = sk
 	}
 
-	res, err := cloud.Request(service, version, action, payload, region, secretId, secretKey)
+	res, err := cloud.Proxy(service, version, action, payload, region, secretId, secretKey)
 
 	if err == nil {
 		json, _ := json.Marshal(res.Response)

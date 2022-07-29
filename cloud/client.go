@@ -1,55 +1,70 @@
 package cloud
 
 import (
-	"context"
 	"encoding/json"
+	"os"
 
 	tc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	th "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
 	tp "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 )
 
-type Client struct {
-	tc.Client
+type Params struct {
+	Service   string
+	Version   string
+	Action    string
+	Payload   []byte
+	Region    string
+	SecretId  string
+	SecretKey string
 }
 
-type TakeRequest struct {
-	*th.BaseRequest
-}
-
-type TakeResponse struct {
-	*th.BaseResponse
+type Response struct {
 	Response interface{} `json:"Response"`
 }
 
-func NewClient(region, secretId, secretKey string) *Client {
+func NewRequest(rp *Params) (res *Response, err error) {
 
-	profile := tp.NewClientProfile()
-	credential := tc.NewCredential(secretId, secretKey)
+	request := th.NewCommonRequest(rp.Service, rp.Version, rp.Action)
 
-	client := &Client{}
-	client.Init(region).WithCredential(credential).WithProfile(profile)
+	if rp.Payload != nil {
+		request.SetActionParameters(rp.Payload)
+	}
 
-	return client
+	client := NewClient(rp)
+	response := th.NewCommonResponse()
+
+	if err = client.Send(request, response); err != nil {
+		return
+	}
+
+	res = &Response{}
+	body := response.GetBody()
+
+	if err = json.Unmarshal(body, res); err != nil {
+		return
+	}
+
+	return
 
 }
 
-func (c *Client) Take(service, version, action, payload string) (*TakeResponse, error) {
+func NewClient(rp *Params) (c *tc.Client) {
 
-	request := &TakeRequest{
-		BaseRequest: &th.BaseRequest{},
-	}
-	json.Unmarshal([]byte(payload), &request)
+	profile := tp.NewClientProfile()
 
-	request.Init().WithApiInfo(service, version, action)
-	request.SetContext(context.Background())
-
-	response := &TakeResponse{
-		BaseResponse: &th.BaseResponse{},
+	if os.Getenv("IS_DEBUG") != "" {
+		profile.Debug = true
 	}
 
-	err := c.Send(request, response)
+	if rp.Region != "" {
+		profile.HttpProfile.Endpoint = rp.Service + "." + rp.Region + ".tencentcloudapi.com"
+	}
 
-	return response, err
+	credential := tc.NewCredential(rp.SecretId, rp.SecretKey)
+
+	c = tc.NewCommonClient(credential, rp.Region, profile)
+
+	return
 
 }

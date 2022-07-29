@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-func Request(service, version, action, payload, region, secretId, secretKey string) (*TakeResponse, error) {
+func Proxy(service, version, action, payload, region, secretId, secretKey string) (*Response, error) {
 
 	if service == "" || version == "" || action == "" {
 		return nil, errors.New("缺少参数：service，version 或 action")
@@ -18,8 +18,16 @@ func Request(service, version, action, payload, region, secretId, secretKey stri
 		payload = "{}"
 	}
 
-	c := NewClient(region, secretId, secretKey)
+	rp := &Params{
+		Service:   service,
+		Version:   version,
+		Action:    action,
+		Payload:   []byte(payload),
+		Region:    region,
+		SecretId:  secretId,
+		SecretKey: secretKey,
+	}
 
-	return c.Take(service, version, action, payload)
+	return NewRequest(rp)
 
 }

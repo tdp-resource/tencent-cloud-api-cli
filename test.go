@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	res, err := cloud.Request(
+	res, err := cloud.Proxy(
 		"lighthouse", "2020-03-24", "DescribeInstances", "{}",
 		"ap-guangzhou", "xxx", "xxx",
 	)
